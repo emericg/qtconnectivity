@@ -117,6 +117,13 @@ static ManufacturerData extractManufacturerData(ComPtr<IBluetoothLEAdvertisement
     return ret;
 }
 
+static ServiceData extractServiceData(ComPtr<IBluetoothLEAdvertisement> ad)
+{
+    ServiceData ret;
+    // TODO // parse BluetoothLEAdvertisementDataSection?
+    return ret;
+}
+
 class QWinRTBluetoothDeviceDiscoveryWorker : public QObject
 {
     Q_OBJECT
@@ -155,7 +162,7 @@ public slots:
 Q_SIGNALS:
     void deviceFound(const QBluetoothDeviceInfo &info);
     void deviceDataChanged(const QBluetoothAddress &address, QBluetoothDeviceInfo::Fields,
-                           qint16 rssi, ManufacturerData manufacturerData);
+                           qint16 rssi, ManufacturerData manufacturerData, ServiceData serviceData);
     void errorOccured(QBluetoothDeviceDiscoveryAgent::Error error);
     void scanFinished();
 
@@ -174,6 +181,7 @@ private:
     QMap<quint64, LEAdvertisingInfo> m_foundLEDevicesMap;
     QMap<quint64, qint16> m_foundLEDevices;
     QMap<quint64, ManufacturerData> m_foundLEManufacturerData;
+    QMap<quint64, ServiceData> m_foundLEServiceData;
     int m_pendingPairedDevices;
 
     ComPtr<IBluetoothDeviceStatics> m_deviceStatics;
@@ -336,14 +344,22 @@ HRESULT QWinRTBluetoothDeviceDiscoveryWorker::onBluetoothLEAdvertisementReceived
     EMIT_WORKER_ERROR_AND_RETURN_IF_FAILED("Could get advertisement",
                                    QBluetoothDeviceDiscoveryAgent::Error::UnknownError,
                                    return S_OK);
-    const ManufacturerData manufacturerData = extractManufacturerData(ad);
     QBluetoothDeviceInfo::Fields changedFields = QBluetoothDeviceInfo::Field::None;
+    const ManufacturerData manufacturerData = extractManufacturerData(ad);
     if (!m_foundLEManufacturerData.contains(address)) {
         m_foundLEManufacturerData.insert(address, manufacturerData);
         changedFields.setFlag(QBluetoothDeviceInfo::Field::ManufacturerData);
     } else if (m_foundLEManufacturerData.value(address) != manufacturerData) {
         m_foundLEManufacturerData[address] = manufacturerData;
         changedFields.setFlag(QBluetoothDeviceInfo::Field::ManufacturerData);
+    }
+    const ServiceData serviceData = extractServiceData(ad);
+    if (!m_foundLEServiceData.contains(address)) {
+        m_foundLEServiceData.insert(address, serviceData);
+        changedFields.setFlag(QBluetoothDeviceInfo::Field::ServiceData);
+    } else if (m_foundLEServiceData.value(address) != serviceData) {
+        m_foundLEServiceData[address] = serviceData;
+        changedFields.setFlag(QBluetoothDeviceInfo::Field::ServiceData);
     }
     if (supportsNewLEApi()) {
         ComPtr<IVector<GUID>> guids;
@@ -390,7 +406,8 @@ HRESULT QWinRTBluetoothDeviceDiscoveryWorker::onBluetoothLEAdvertisementReceived
                                               Q_ARG(QBluetoothAddress, QBluetoothAddress(address)),
                                               Q_ARG(QBluetoothDeviceInfo::Fields, changedFields),
                                               Q_ARG(qint16, rssi),
-                                              Q_ARG(ManufacturerData, manufacturerData));
+                                              Q_ARG(ManufacturerData, manufacturerData),
+                                              Q_ARG(ServiceData, serviceData));
                 }
                 return S_OK;
             }
@@ -414,7 +431,8 @@ HRESULT QWinRTBluetoothDeviceDiscoveryWorker::onBluetoothLEAdvertisementReceived
                                           Q_ARG(QBluetoothAddress, QBluetoothAddress(address)),
                                           Q_ARG(QBluetoothDeviceInfo::Fields, changedFields),
                                           Q_ARG(qint16, rssi),
-                                          Q_ARG(ManufacturerData, manufacturerData));
+                                          Q_ARG(ManufacturerData, manufacturerData),
+                                          Q_ARG(ServiceData, serviceData));
             }
             return S_OK;
         }
@@ -799,10 +817,12 @@ HRESULT QWinRTBluetoothDeviceDiscoveryWorker::onBluetoothLEDeviceFound(ComPtr<IB
     }
     const qint16 rssi = m_foundLEDevices.value(address);
     const ManufacturerData manufacturerData = m_foundLEManufacturerData.value(address);
+    const ServiceData serviceData = m_foundLEServiceData.value(address);
 
     qCDebug(QT_BT_WINDOWS) << "Discovered BTLE device: " << QString::number(address) << btName
         << "Num UUIDs" << uuids.count() << "RSSI:" << rssi
-        << "Num manufacturer data" << manufacturerData.count();
+        << "Num manufacturer data" << manufacturerData.count()
+        << "Num service data" << serviceData.count();
 
     QBluetoothDeviceInfo info(QBluetoothAddress(address), btName, 0);
     info.setCoreConfigurations(QBluetoothDeviceInfo::LowEnergyCoreConfiguration);
@@ -898,6 +918,7 @@ HRESULT QWinRTBluetoothDeviceDiscoveryWorker::onBluetoothLEDeviceFound(ComPtr<IB
         }
     }
     const ManufacturerData manufacturerData = m_foundLEManufacturerData.value(address);
+    const ServiceData serviceData = m_foundLEServiceData.value(address);
 
     qCDebug(QT_BT_WINDOWS) << "Discovered BTLE device: " << QString::number(address) << btName
         << "Num UUIDs" << uuids.count() << "RSSI:" << rssi
@@ -909,6 +930,8 @@ HRESULT QWinRTBluetoothDeviceDiscoveryWorker::onBluetoothLEDeviceFound(ComPtr<IB
     info.setRssi(rssi);
     for (quint16 key : manufacturerData.keys())
         info.setManufacturerData(key, manufacturerData.value(key));
+    for (QBluetoothUuid key : serviceData.keys())
+        info.setServiceData(key, serviceData.value(key));
     info.setCached(true);
 
     QMetaObject::invokeMethod(this, "deviceFound", Qt::AutoConnection,
@@ -1007,7 +1030,8 @@ void QBluetoothDeviceDiscoveryAgentPrivate::registerDevice(const QBluetoothDevic
 void QBluetoothDeviceDiscoveryAgentPrivate::updateDeviceData(const QBluetoothAddress &address,
                                                              QBluetoothDeviceInfo::Fields fields,
                                                              qint16 rssi,
-                                                             ManufacturerData manufacturerData)
+                                                             ManufacturerData manufacturerData,
+                                                             ServiceData serviceData)
 {
     if (fields.testFlag(QBluetoothDeviceInfo::Field::None))
         return;
@@ -1022,6 +1046,9 @@ void QBluetoothDeviceDiscoveryAgentPrivate::updateDeviceData(const QBluetoothAdd
             if (fields.testFlag(QBluetoothDeviceInfo::Field::ManufacturerData))
                 for (quint16 key : manufacturerData.keys())
                     iter->setManufacturerData(key, manufacturerData.value(key));
+            if (fields.testFlag(QBluetoothDeviceInfo::Field::ServiceData))
+                for (QBluetoothUuid key : serviceData.keys())
+                    iter->setServiceData(key, serviceData.value(key));
             emit q->deviceUpdated(*iter, fields);
             return;
         }

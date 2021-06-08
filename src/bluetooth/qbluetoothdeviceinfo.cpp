@@ -80,6 +80,7 @@ QT_BEGIN_NAMESPACE
     \value None             None of the values changed.
     \value RSSI             The \l rssi() value of the device changed.
     \value ManufacturerData The \l manufacturerData() field changed
+    \value ServiceData      The \l serviceData() field changed
     \value All              Matches every possible field.
 
     \since 5.12
@@ -396,6 +397,7 @@ QBluetoothDeviceInfo &QBluetoothDeviceInfo::operator=(const QBluetoothDeviceInfo
     d->cached = other.d_func()->cached;
     d->serviceUuids = other.d_func()->serviceUuids;
     d->manufacturerData = other.d_func()->manufacturerData;
+    d->serviceData = other.d_func()->serviceData;
     d->rssi = other.d_func()->rssi;
     d->deviceCoreConfiguration = other.d_func()->deviceCoreConfiguration;
     d->deviceUuid = other.d_func()->deviceUuid;
@@ -440,6 +442,8 @@ bool QBluetoothDeviceInfo::equals(const QBluetoothDeviceInfo &a, const QBluetoot
     if (a.d_func()->serviceUuids != b.d_func()->serviceUuids)
         return false;
     if (a.d_func()->manufacturerData != b.d_func()->manufacturerData)
+        return false;
+    if (a.d_func()->serviceData != b.d_func()->serviceData)
         return false;
     if (a.d_func()->deviceCoreConfiguration != b.d_func()->deviceCoreConfiguration)
         return false;
@@ -627,6 +631,81 @@ QMultiHash<quint16, QByteArray> QBluetoothDeviceInfo::manufacturerData() const
 {
     Q_D(const QBluetoothDeviceInfo);
     return d->manufacturerData;
+}
+
+/*!
+    Returns all service ids attached to this device information.
+
+    \sa serviceData(), setServiceData()
+
+    \since 6.3
+ */
+QVector<QBluetoothUuid> QBluetoothDeviceInfo::serviceIds() const
+{
+    Q_D(const QBluetoothDeviceInfo);
+    return d->serviceData.keys().toVector();
+}
+
+/*!
+    Returns the data associated with the given \a serviceId.
+
+    Service data is defined by
+    the Supplement to the Bluetooth Core Specification and consists of two segments:
+
+    \list
+    \li Service UUID
+    \li Sequence of arbitrary data octets
+    \endlist
+
+    \note The remote device may provide multiple data entries per serviceId.
+    This function only returns the first entry. If all entries are needed use
+    \l serviceData() which returns a multi hash.
+
+    \sa serviceIds(), setServiceData()
+    \since 6.3
+ */
+QByteArray QBluetoothDeviceInfo::serviceData(QBluetoothUuid serviceId) const
+{
+    Q_D(const QBluetoothDeviceInfo);
+    return d->serviceData.value(serviceId);
+}
+
+/*!
+    Sets the advertised service \a data for the given \a serviceId.
+    Returns \c true if it was inserted, \c false if it was already known.
+
+    \sa serviceData
+    \since 6.3
+*/
+bool QBluetoothDeviceInfo::setServiceData(QBluetoothUuid serviceId, const QByteArray &data)
+{
+    Q_D(QBluetoothDeviceInfo);
+    auto it = d->serviceData.constFind(serviceId);
+    while (it != d->serviceData.cend() && it.key() == serviceId) {
+        if (*it == data)
+            return false;
+        it++;
+    }
+
+    d->serviceData.insert(serviceId, data);
+    return true;
+}
+
+/*!
+    Returns the complete set of all service data.
+
+    Some devices may provide multiple service data entries per service ID.
+    An example might be a Bluetooth Low Energy device that sends a different service data via
+    advertisement packets and scan response packets respectively. Therefore the returned hash table
+    may have multiple entries per service ID or hash key.
+
+    \sa setServiceData
+    \since 6.3
+*/
+QMultiHash<QBluetoothUuid, QByteArray> QBluetoothDeviceInfo::serviceData() const
+{
+    Q_D(const QBluetoothDeviceInfo);
+    return d->serviceData;
 }
 
 /*!
