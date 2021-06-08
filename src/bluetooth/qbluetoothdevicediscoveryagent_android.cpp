@@ -378,6 +378,13 @@ void QBluetoothDeviceDiscoveryAgentPrivate::processDiscoveredDevices(
                     discoveredDevices[i].setManufacturerData(key, info.manufacturerData(key));
                 updatedFields.setFlag(QBluetoothDeviceInfo::Field::ManufacturerData);
             }
+            if (discoveredDevices[i].serviceData() != info.serviceData()) {
+                qCDebug(QT_BT_ANDROID) << "Updating service data for" << info.address();
+                const QVector<quint16> keys = info.serviceIds();
+                for (auto key: keys)
+                    discoveredDevices[i].setServiceData(key, info.serviceData(key));
+                updatedFields.setFlag(QBluetoothDeviceInfo::Field::ServiceData);
+            }
 
             if (lowEnergySearchTimeout > 0) {
                 if (discoveredDevices[i] != info) {

@@ -74,6 +74,7 @@ bool isBluez5()
         qDBusRegisterMetaType<InterfaceList>();
         qDBusRegisterMetaType<ManagedObjectList>();
         qDBusRegisterMetaType<ManufacturerDataList>();
+        //qDBusRegisterMetaType<ServiceDataList>();
 
         QDBusPendingReply<ManagedObjectList> reply = manager.GetManagedObjects();
         reply.waitForFinished();
@@ -201,6 +202,7 @@ QVersionNumber bluetoothdVersion()
         qDBusRegisterMetaType<InterfaceList>();
         qDBusRegisterMetaType<ManagedObjectList>();
         qDBusRegisterMetaType<ManufacturerDataList>();
+        //qDBusRegisterMetaType<ServiceDataList>();
 
         qCDebug(QT_BT_BLUEZ) << "Detecting bluetoothd version";
         //Order of matching

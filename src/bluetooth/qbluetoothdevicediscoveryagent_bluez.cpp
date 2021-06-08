@@ -456,10 +456,16 @@ static QBluetoothDeviceInfo createDeviceInfoFromBluez5Device(const QVariantMap& 
     }
 
     const ManufacturerDataList deviceManufacturerData = qdbus_cast<ManufacturerDataList>(properties[QStringLiteral("ManufacturerData")]);
-    const QList<quint16> keys = deviceManufacturerData.keys();
-    for (quint16 key : keys)
+    const QList<quint16> keys_manufacturer = deviceManufacturerData.keys();
+    for (quint16 key : keys_manufacturer)
         deviceInfo.setManufacturerData(
                     key, deviceManufacturerData.value(key).variant().toByteArray());
+
+    const ManufacturerDataList deviceServiceData = qdbus_cast<ManufacturerDataList>(properties[QStringLiteral("ServiceData")]);
+    const QList<quint16> keys_service = deviceServiceData.keys();
+    for (quint16 key : keys_service)
+        deviceInfo.setServiceData(
+                    key, deviceServiceData.value(key).variant().toByteArray());
 
     return deviceInfo;
 }
@@ -485,7 +491,8 @@ void QBluetoothDeviceDiscoveryAgentPrivate::deviceFoundBluez5(const QString &dev
                          << "Num UUIDs" << deviceInfo.serviceUuids().count()
                          << "total device" << discoveredDevices.count() << "cached"
                          << "RSSI" << deviceInfo.rssi()
-                         << "Num ManufacturerData" << deviceInfo.manufacturerData().size();
+                         << "Num ManufacturerData" << deviceInfo.manufacturerData().size()
+                         << "Num ServiceData" << deviceInfo.serviceData().size();
 
     // Cache the properties so we do not have to access dbus every time to get a value
     devicesProperties[devicePath] = properties;

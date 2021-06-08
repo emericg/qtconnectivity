@@ -207,6 +207,7 @@ public:
         None = 0x0000,
         RSSI = 0x0001,
         ManufacturerData = 0x0002,
+        ServiceData = 0x0004,
         All = 0x7fff
     };
     Q_DECLARE_FLAGS(Fields, Field)
@@ -268,6 +269,11 @@ public:
     QByteArray manufacturerData(quint16 manufacturerId) const;
     bool setManufacturerData(quint16 manufacturerId, const QByteArray &data);
     QHash<quint16, QByteArray> manufacturerData() const;
+
+    QVector<quint16> serviceIds() const;
+    QByteArray serviceData(quint16 serviceId) const;
+    bool setServiceData(quint16 serviceId, const QByteArray &data);
+    QHash<quint16, QByteArray> serviceData() const;
 
     void setCoreConfigurations(QBluetoothDeviceInfo::CoreConfigurations coreConfigs);
     QBluetoothDeviceInfo::CoreConfigurations coreConfigurations() const;

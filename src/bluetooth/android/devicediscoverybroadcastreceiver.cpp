@@ -245,6 +245,9 @@ enum ADType {
     ADType32BitUuidComplete = 0x05,
     ADType128BitUuidIncomplete = 0x06,
     ADType128BitUuidComplete = 0x07,
+    ADTypeServiceData16Bit = 0x16,
+    ADTypeServiceData32Bit = 0x20,
+    ADTypeServiceData128Bit = 0x21,
     ADTypeManufacturerSpecificData = 0xff,
     // .. more will be added when required
 };
@@ -549,6 +552,14 @@ QBluetoothDeviceInfo DeviceDiscoveryBroadcastReceiver::retrieveDeviceInfo(JNIEnv
                 foundService =
                     QBluetoothUuid(qToBigEndian<quint128>(qFromLittleEndian<quint128>(dataPtr)));
                 break;
+            case ADTypeServiceData16Bit:
+            case ADTypeServiceData32Bit:
+            case ADTypeServiceData128Bit:
+                if (nBytes >= 3) {
+                    info.setServiceData(qFromLittleEndian<quint16>(dataPtr),
+                                        QByteArray(dataPtr + 2, nBytes - 3));
+                }
+                break;
             case ADTypeManufacturerSpecificData:
                 if (nBytes >= 3) {
                     info.setManufacturerData(qFromLittleEndian<quint16>(dataPtr),
@@ -587,4 +598,3 @@ QBluetoothDeviceInfo DeviceDiscoveryBroadcastReceiver::retrieveDeviceInfo(JNIEnv
 }
 
 QT_END_NAMESPACE
-

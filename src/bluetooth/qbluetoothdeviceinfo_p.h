@@ -82,6 +82,7 @@ public:
 #endif
     QVector<QBluetoothUuid> serviceUuids;
     QMultiHash<quint16, QByteArray> manufacturerData;
+    QMultiHash<quint16, QByteArray> serviceData;
     QBluetoothDeviceInfo::CoreConfigurations deviceCoreConfiguration;
 
     QBluetoothUuid deviceUuid;
