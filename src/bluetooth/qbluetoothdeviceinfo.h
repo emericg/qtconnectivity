@@ -251,7 +251,7 @@ public:
     bool setManufacturerData(quint16 manufacturerId, const QByteArray &data);
     QMultiHash<quint16, QByteArray> manufacturerData() const;
 
-    QVector<QBluetoothUuid> serviceIds() const;
+    QList<QBluetoothUuid> serviceIds() const;
     QByteArray serviceData(QBluetoothUuid serviceId) const;
     bool setServiceData(QBluetoothUuid serviceId, const QByteArray &data);
     QMultiHash<QBluetoothUuid, QByteArray> serviceData() const;

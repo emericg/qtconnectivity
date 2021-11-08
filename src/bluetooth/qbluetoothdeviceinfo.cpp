@@ -560,7 +560,7 @@ QList<QBluetoothUuid> QBluetoothDeviceInfo::serviceUuids() const
 QList<quint16> QBluetoothDeviceInfo::manufacturerIds() const
 {
     Q_D(const QBluetoothDeviceInfo);
-    return d->manufacturerData.keys().toVector();
+    return d->manufacturerData.keys().toList();
 }
 
 /*!
@@ -640,10 +640,10 @@ QMultiHash<quint16, QByteArray> QBluetoothDeviceInfo::manufacturerData() const
 
     \since 6.3
  */
-QVector<QBluetoothUuid> QBluetoothDeviceInfo::serviceIds() const
+QList<QBluetoothUuid> QBluetoothDeviceInfo::serviceIds() const
 {
     Q_D(const QBluetoothDeviceInfo);
-    return d->serviceData.keys().toVector();
+    return d->serviceData.keys().toList();
 }
 
 /*!

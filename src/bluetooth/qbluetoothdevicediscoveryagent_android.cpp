@@ -347,7 +347,7 @@ void QBluetoothDeviceDiscoveryAgentPrivate::processDiscoveredDevices(
             }
             if (discoveredDevices[i].serviceData() != info.serviceData()) {
                 qCDebug(QT_BT_ANDROID) << "Updating service data for" << info.address();
-                const QVector<QBluetoothUuid> keys = info.serviceIds();
+                const QList<QBluetoothUuid> keys = info.serviceIds();
                 for (auto key: keys)
                     discoveredDevices[i].setServiceData(key, info.serviceData(key));
                 updatedFields.setFlag(QBluetoothDeviceInfo::Field::ServiceData);
