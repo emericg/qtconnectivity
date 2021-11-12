@@ -114,7 +114,12 @@ AdvertisementData::AdvertisementData(NSDictionary *advertisementData)
         [advdict enumerateKeysAndObjectsUsingBlock:^(CBUUID *key, NSData *val, BOOL *) {
             QByteArray keydata = QByteArray::fromNSData(static_cast<NSData*>(key.data));
             QByteArray valuedata = QByteArray::fromNSData(static_cast<NSData*>(val));
-            serviceData.insert(QBluetoothUuid(qFromLittleEndian<quint128>(keydata.constData())), valuedata);
+            if (keydata.size() == 2)
+                serviceData.insert(QBluetoothUuid(qFromBigEndian<quint16>(keydata.constData())), valuedata);
+            else if (keydata.size() == 4)
+                serviceData.insert(QBluetoothUuid(qFromBigEndian<quint32>(keydata.constData())), valuedata);
+            else if (keydata.size() == 16)
+                serviceData.insert(QBluetoothUuid(qFromLittleEndian<quint128>(keydata.constData())), valuedata);
         }];
     }
 
