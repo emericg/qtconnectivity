@@ -78,3 +78,4 @@ tests/auto/qnearfieldtagtype1/tst_qnearfieldtagtype1
 tests/auto/qnearfieldtagtype2/tst_qnearfieldtagtype2
 tests/bttestui/bttestui
 tests/nfctestserver/nfctestserver
+build/
