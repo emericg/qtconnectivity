@@ -298,6 +298,18 @@ int QBluetoothDeviceDiscoveryAgent::lowEnergyDiscoveryTimeout() const
     return d->lowEnergySearchTimeout;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+void QBluetoothDeviceDiscoveryAgent::setAndroidScanFilter(const QStringList &filteredAddr)
+{
+#ifdef QT_ANDROID_BLUETOOTH
+
+    Q_D(QBluetoothDeviceDiscoveryAgent);
+    d->leScanFilterAddr = filteredAddr;
+
+#endif // QT_ANDROID_BLUETOOTH
+}
+////////////////////////////////////////////////////////////////////////////////
+
 /*!
     \fn QBluetoothDeviceDiscoveryAgent::DiscoveryMethods QBluetoothDeviceDiscoveryAgent::supportedDiscoveryMethods()
 

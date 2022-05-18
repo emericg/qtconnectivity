@@ -156,6 +156,7 @@ private:
     QJniObject adapter;
     QJniObject leScanner;
     QTimer *leScanTimeout = nullptr;
+    QStringList leScanFilterAddr;
 
     bool pendingCancel = false;
     bool pendingStart = false;

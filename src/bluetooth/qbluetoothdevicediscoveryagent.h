@@ -94,6 +94,8 @@ public:
     void setLowEnergyDiscoveryTimeout(int msTimeout);
     int lowEnergyDiscoveryTimeout() const;
 
+    void setAndroidScanFilter(const QStringList &filteredAddr);
+
     static DiscoveryMethods supportedDiscoveryMethods();
 public Q_SLOTS:
     void start();
