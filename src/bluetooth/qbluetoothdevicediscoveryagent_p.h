@@ -160,6 +160,7 @@ private:
     QTimer *leScanTimeout = nullptr;
     QTimer *deviceDiscoveryStartTimeout = nullptr;
     short deviceDiscoveryStartAttemptsLeft;
+    QStringList leScanFilterAddr;
 
     bool pendingCancel = false;
     bool pendingStart = false;
