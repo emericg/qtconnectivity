@@ -31,6 +31,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import java.util.Objects;
+import java.util.Arrays;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -53,6 +56,8 @@ public class QtBluetoothLE {
     private final int MAX_MTU = 512;
     private final int DEFAULT_MTU = 23;
     private int mSupportedMtu = -1;
+
+    private List<String> mScanFilterAddresses;
 
     /*
      *  The atomic synchronizes the timeoutRunnable thread and the response thread for the pending
@@ -197,6 +202,10 @@ public class QtBluetoothLE {
     /* variables that are not accessed from Java threads         */
     /*************************************************************/
 
+    public void setLeScanFilterList(String filteredAddresses) {
+        mScanFilterAddresses = Arrays.asList(filteredAddresses.split("\\s*,\\s*"));
+    }
+
     public boolean scanForLeDevice(final boolean isEnabled) {
         if (isEnabled == mLeScanRunning)
             return true;
@@ -213,6 +222,17 @@ public class QtBluetoothLE {
             ScanSettings settings = settingsBuilder.build();
 
             List<ScanFilter> filterList = new ArrayList<ScanFilter>();
+
+            // new filter list feature
+            if (!Objects.isNull(mScanFilterAddresses)) { // v5
+                for (String element : mScanFilterAddresses) {
+                    ScanFilter.Builder builder = new ScanFilter.Builder().setDeviceAddress(element);
+                    filterList.add(builder.build());
+                }
+            } else { // v1
+                ScanFilter.Builder builder = new ScanFilter.Builder();
+                filterList.add(builder.build());
+            }
 
             mBluetoothLeScanner.startScan(filterList, settings, leScanCallback);
             mLeScanRunning = true;
