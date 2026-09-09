@@ -130,6 +130,7 @@ private:
     QTimer *deviceDiscoveryStartTimeout = nullptr;
     short deviceDiscoveryStartAttemptsLeft;
     int leScanEpoch = 0;
+    QStringList leScanFilterAddr;
 
     bool pendingCancel = false;
     bool pendingStart = false;

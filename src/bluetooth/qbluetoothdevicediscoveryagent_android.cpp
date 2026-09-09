@@ -448,6 +448,16 @@ void QBluetoothDeviceDiscoveryAgentPrivate::startLowEnergyScan()
         leScanner.setField("qtObject", reinterpret_cast<jlong>(receiver));
     }
 
+    if (!leScanFilterAddr.isEmpty())
+    {
+        QString macs = leScanFilterAddr.join(QLatin1String(","));
+        QJniObject macsString = QJniObject::fromString(macs);
+
+        leScanner.callMethod<void>("setLeScanFilterList",
+                                   "(Ljava/lang/String;)V",
+                                   macsString.object<jstring>());
+    }
+
     jboolean result = leScanner.callMethod<jboolean>("scanForLeDevice", true);
     if (!result) {
         qCWarning(QT_BT_ANDROID) << "Cannot start BTLE device scanner";
