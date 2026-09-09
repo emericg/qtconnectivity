@@ -116,6 +116,14 @@ void QBluetoothDeviceDiscoveryAgentPrivate::start(QBluetoothDeviceDiscoveryAgent
     else
         map.insert(QStringLiteral("Transport"), QStringLiteral("bredr"));
 
+    // ### Qt 6.x: remove the use of env. variable, as soon as a proper public API is in place.
+    bool envOk = false;
+    const int env = qEnvironmentVariableIntValue("QT_BLUETOOTH_SCAN_ENABLE_DUPLICATES", &envOk);
+    if (envOk && env) {
+        map.insert(QStringLiteral("DuplicateData"), true); // do not filter out duplicate data
+        qWarning() << "QT_BLUETOOTH_SCAN_ENABLE_DUPLICATES";
+    }
+
     // older BlueZ 5.x versions don't have this function
     // filterReply returns UnknownMethod which we ignore
     QDBusPendingReply<> filterReply = adapter->SetDiscoveryFilter(map);
